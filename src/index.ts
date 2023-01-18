@@ -1,11 +1,4 @@
-import { of, distinct, from } from "rxjs";
-
-const obs$ = of(1, 1, 2, 3, 4, 5, 5, 1);
-
-obs$.pipe(distinct()).subscribe({
-  next: (val) => console.log("next::", val),
-  complete: () => console.log("Completed"),
-});
+import { from, distinctUntilChanged } from "rxjs";
 
 interface Personaje {
   nombre: string;
@@ -19,7 +12,6 @@ const personajes: Personaje[] = [
   { nombre: "pluto" },
 ];
 
-from(personajes).pipe(
-    distinct(p => p.nombre)
-)
-.subscribe(console.log);
+from(personajes)
+  .pipe(distinctUntilChanged((ant, act) => ant.nombre !== act.nombre))
+  .subscribe(console.log);
