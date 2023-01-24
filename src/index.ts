@@ -1,25 +1,25 @@
-import { debounceTime, fromEvent, map } from "rxjs";
+import { debounceTime, fromEvent, map, mergeAll, pluck } from "rxjs";
 import { ajax } from "rxjs/ajax";
 
 // Referencias
-const body = document.querySelector('body');
+const body = document.querySelector("body");
 
-const textInput = document.createElement('input');
-const orderList = document.createElement('ol');
+const textInput = document.createElement("input");
+const orderList = document.createElement("ol");
 
 body.append(textInput, orderList);
 
 //Streams
-const input$ = fromEvent<KeyboardEvent>(textInput, 'keyup');
+const input$ = fromEvent<KeyboardEvent>(textInput, "keyup");
 
-input$.pipe(
+input$
+  .pipe(
     debounceTime(500),
-    map((event) => {
-        const texto = event.target['value'];
-
-        return ajax.getJSON(`https://api.github.com/users/${texto}`)
-    })
-).subscribe({
-    next: (resp) => resp.subscribe(console.log),
-    complete: () => console.log('Compplete')
-})
+    pluck("target", "value"),
+    map((texto) =>
+      ajax.getJSON(`https://api.github.com/search/users?q=${texto}`)
+    ),
+    mergeAll(),
+    map((resp:any) => resp.items)
+  )
+  .subscribe((resp) => console.log(resp));
